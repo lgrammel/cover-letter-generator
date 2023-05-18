@@ -31,7 +31,6 @@ export default function Home() {
     fileReader.readAsArrayBuffer(resumeFile);
     fileReader.onload = async () => {
       const arrayBuffer = fileReader.result as ArrayBuffer;
-      console.log(arrayBuffer);
 
       const pdf = await PDFJS.getDocument({
         data: arrayBuffer,
@@ -52,12 +51,7 @@ export default function Home() {
         );
       }
 
-      const result = pageTexts.join("\n").replace(/\s+/g, " ");
-      console.log(result);
-
-      // reduce whitespace to single space
-
-      // Do something with the arrayBuffer here
+      const resumeContent = pageTexts.join("\n").replace(/\s+/g, " ");
     };
   };
 
