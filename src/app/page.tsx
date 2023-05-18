@@ -2,7 +2,9 @@
 
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import { useState } from "react";
-import * as PDFJS from "pdfjs-dist/legacy/build/pdf";
+import * as PDFJS from "pdfjs-dist";
+
+PDFJS.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS.version}/pdf.worker.min.js`;
 
 export default function Home() {
   const [companyName, setCompanyName] = useState("");
@@ -27,9 +29,34 @@ export default function Home() {
 
     const fileReader = new FileReader();
     fileReader.readAsArrayBuffer(resumeFile);
-    fileReader.onload = () => {
+    fileReader.onload = async () => {
       const arrayBuffer = fileReader.result as ArrayBuffer;
       console.log(arrayBuffer);
+
+      const pdf = await PDFJS.getDocument({
+        data: arrayBuffer,
+        useSystemFonts: true, // https://github.com/mozilla/pdf.js/issues/4244#issuecomment-1479534301
+      }).promise;
+
+      const pageTexts: string[] = [];
+      for (let i = 0; i < pdf.numPages; i++) {
+        const page = await pdf.getPage(i + 1);
+        const pageContent = await page.getTextContent();
+
+        pageTexts.push(
+          pageContent.items
+            // limit to TextItem, extract str:
+            .filter((item) => (item as any).str != null)
+            .map((item) => (item as any).str as string)
+            .join(" ")
+        );
+      }
+
+      const result = pageTexts.join("\n").replace(/\s+/g, " ");
+      console.log(result);
+
+      // reduce whitespace to single space
+
       // Do something with the arrayBuffer here
     };
   };
