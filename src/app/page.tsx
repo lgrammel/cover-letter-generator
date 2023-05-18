@@ -1,10 +1,11 @@
 "use client";
 
+import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import { useState } from "react";
-import { TextField, Button } from "@mui/material";
-import styles from "./page.module.css";
+import * as PDFJS from "pdfjs-dist/legacy/build/pdf";
 
 export default function Home() {
+  const [companyName, setCompanyName] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
 
@@ -18,13 +19,49 @@ export default function Home() {
     }
   };
 
-  const handleGenerateCoverLetter = () => {
-    // TODO: Implement cover letter generation logic
-    console.log("Generating cover letter...");
+  const handleGenerateCoverLetter = async () => {
+    if (!resumeFile) {
+      console.error("No resume file selected");
+      return;
+    }
+
+    const fileReader = new FileReader();
+    fileReader.readAsArrayBuffer(resumeFile);
+    fileReader.onload = () => {
+      const arrayBuffer = fileReader.result as ArrayBuffer;
+      console.log(arrayBuffer);
+      // Do something with the arrayBuffer here
+    };
   };
 
   return (
-    <main className={styles.main}>
+    <Paper
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        margin: 2,
+        padding: 2,
+      }}
+    >
+      <Typography
+        variant="h4"
+        sx={{
+          textAlign: "center",
+        }}
+      >
+        Cover Letter Generator
+      </Typography>
+      <TextField
+        id="company-name"
+        label="Company Name"
+        placeholder="Enter company name here"
+        variant="outlined"
+        value={companyName}
+        onChange={(event) => {
+          setCompanyName(event.target.value);
+        }}
+      />
       <TextField
         id="job-description"
         label="Job Description"
@@ -37,15 +74,27 @@ export default function Home() {
           setJobDescription(event.target.value);
         }}
       />
-      <input
-        accept="application/pdf"
-        id="resume-file"
-        type="file"
-        onChange={handleResumeFileChange}
-      />
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 1,
+          padding: 2,
+          color: (theme) => theme.palette.text.secondary,
+          border: (theme) => `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <Typography variant="subtitle1">Upload your Resume (PDF)</Typography>
+        <input
+          accept="application/pdf"
+          id="resume-file"
+          type="file"
+          onChange={handleResumeFileChange}
+        />
+      </Box>
       <Button variant="contained" onClick={handleGenerateCoverLetter}>
         Generate Cover Letter
       </Button>
-    </main>
+    </Paper>
   );
 }
