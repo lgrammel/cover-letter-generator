@@ -1,9 +1,14 @@
 "use client";
 
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
+import { extractTopicAndExcludeChatPrompt } from "@lgrammel/ai-utils/prompt";
+import { openAIChatModel } from "@lgrammel/ai-utils/provider/openai";
+import { generateText } from "@lgrammel/ai-utils/text/generate";
+import { splitRecursivelyAtCharacter } from "@lgrammel/ai-utils/text/split";
+import { splitMapFilterReduce } from "@lgrammel/ai-utils/text/map";
+import { retryWithExponentialBackoff } from "@lgrammel/ai-utils/util";
 import * as PDFJS from "pdfjs-dist";
 import { useState } from "react";
-import * as $ from "../ai";
 
 PDFJS.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS.version}/pdf.worker.min.js`;
 
@@ -118,33 +123,34 @@ export default function Home() {
 }
 
 async function extractSkillsFromResume(resumeContent: string) {
-  const gpt4 = $.provider.openai.chatModel({
-    apiKey: "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",
+  const gpt4 = openAIChatModel({
+    apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY ?? "",
     model: "gpt-4",
   });
 
-  const extractTopicFromREsume = $.text.splitExtractRewrite.asExtractFunction({
-    split: $.text.splitRecursivelyAtCharacter.asSplitFunction({
+  const extractTopicFromREsume = splitMapFilterReduce.asMapFunction({
+    split: splitRecursivelyAtCharacter.asSplitFunction({
       maxChunkSize: 1024 * 4,
     }),
-    extract: $.text.generateText.asFunction({
+    map: generateText.asFunction({
       model: gpt4,
-      prompt: $.prompt.extractAndExcludeChatPrompt({
+      prompt: extractTopicAndExcludeChatPrompt({
+        topic: "Skills and Experience",
         excludeKeyword: "IRRELEVANT",
       }),
-      retry: $.util.retryWithExponentialBackoff({
+      retry: retryWithExponentialBackoff({
         maxTries: 5,
         delay: 4000,
       }),
     }),
-    include: (text) => text !== "IRRELEVANT",
-    rewrite: $.text.generateText.asFunction({
+    filter: (text) => text !== "IRRELEVANT",
+    reduce: generateText.asFunction({
       id: "rewrite",
       model: gpt4,
-      prompt: async ({ text, topic }) => [
+      prompt: async ({ text }) => [
         {
           role: "user" as const,
-          content: `## TOPIC\n${topic}`,
+          content: `## TOPIC\nSkills and Experience`,
         },
         {
           role: "system" as const,
@@ -163,7 +169,6 @@ Discard all irrelevant information.`,
   return await extractTopicFromREsume(
     {
       text: resumeContent,
-      topic: "Skills and Experience",
     },
     {
       recordCall: (record) => {

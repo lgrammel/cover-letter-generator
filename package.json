@@ -11,6 +11,7 @@
   "dependencies": {
     "@emotion/react": "11.11.0",
     "@emotion/styled": "11.11.0",
+    "@lgrammel/ai-utils": "0.0.0",
     "@mui/icons-material": "^5.2.7",
     "@mui/material": "5.13.1",
     "@types/node": "20.2.1",
@@ -18,12 +19,12 @@
     "@types/react-dom": "18.2.4",
     "eslint": "8.40.0",
     "eslint-config-next": "13.4.2",
+    "langchain": "0.0.77",
     "next": "13.4.2",
     "pdfjs-dist": "^2.10.377",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "typescript": "5.0.4",
-    "langchain": "0.0.77"
+    "typescript": "5.0.4"
   },
   "devDependencies": {
     "@types/pdfjs-dist": "^2.10.378"
