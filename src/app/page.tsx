@@ -1,12 +1,14 @@
 "use client";
 
-import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import { extractTopicAndExcludeChatPrompt } from "@lgrammel/ai-utils/prompt";
-import { openAIChatModel } from "@lgrammel/ai-utils/provider/openai";
-import { generateText } from "@lgrammel/ai-utils/text/generate";
-import { splitRecursivelyAtCharacter } from "@lgrammel/ai-utils/text/split";
-import { splitMapFilterReduce } from "@lgrammel/ai-utils/text/map";
+import { createOpenAIChatModel } from "@lgrammel/ai-utils/provider/openai";
+import {
+  generateText,
+  splitMapFilterReduce,
+  splitRecursivelyAtCharacter,
+} from "@lgrammel/ai-utils/text";
 import { retryWithExponentialBackoff } from "@lgrammel/ai-utils/util";
+import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import * as PDFJS from "pdfjs-dist";
 import { useState } from "react";
 
@@ -123,7 +125,7 @@ export default function Home() {
 }
 
 async function extractSkillsFromResume(resumeContent: string) {
-  const gpt4 = openAIChatModel({
+  const gpt4 = createOpenAIChatModel({
     apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY ?? "",
     model: "gpt-4",
   });
@@ -145,7 +147,7 @@ async function extractSkillsFromResume(resumeContent: string) {
     }),
     filter: (text) => text !== "IRRELEVANT",
     reduce: generateText.asFunction({
-      id: "rewrite",
+      functionId: "rewrite",
       model: gpt4,
       prompt: async ({ text }) => [
         {
@@ -171,7 +173,10 @@ Discard all irrelevant information.`,
       text: resumeContent,
     },
     {
-      recordCall: (record) => {
+      recordCallStart: (record) => {
+        console.log(record);
+      },
+      recordCallEnd: (record) => {
         console.log(record);
       },
     }
