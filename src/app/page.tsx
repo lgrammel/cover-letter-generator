@@ -1,13 +1,13 @@
 "use client";
 
-import { extractTopicAndExcludeChatPrompt } from "@lgrammel/ai-utils/prompt";
-import { createOpenAIChatModel } from "@lgrammel/ai-utils/provider/openai";
+import { extractTopicAndExcludeChatPrompt } from "ai-utils.js/prompt";
+import { createOpenAIChatModel } from "ai-utils.js/model/openai";
 import {
   generateText,
   splitMapFilterReduce,
   splitRecursivelyAtCharacter,
-} from "@lgrammel/ai-utils/text";
-import { retryWithExponentialBackoff } from "@lgrammel/ai-utils/util";
+} from "ai-utils.js/text";
+import { retryWithExponentialBackoff } from "ai-utils.js/util";
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import * as PDFJS from "pdfjs-dist";
 import { useState } from "react";
@@ -173,10 +173,10 @@ Discard all irrelevant information.`,
       text: resumeContent,
     },
     {
-      recordCallStart: (record) => {
+      onCallStart: (record) => {
         console.log(record);
       },
-      recordCallEnd: (record) => {
+      onCallEnd: (record) => {
         console.log(record);
       },
     }
