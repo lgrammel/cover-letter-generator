@@ -1,7 +1,7 @@
 "use client";
 
 import { extractTopicAndExcludeChatPrompt } from "ai-utils.js/prompt";
-import { createOpenAIChatModel } from "ai-utils.js/model/openai";
+import { OpenAIChatModel } from "ai-utils.js/provider/openai";
 import {
   generateText,
   splitMapFilterReduce,
@@ -125,7 +125,7 @@ export default function Home() {
 }
 
 async function extractSkillsFromResume(resumeContent: string) {
-  const gpt4 = createOpenAIChatModel({
+  const gpt4 = new OpenAIChatModel({
     apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY ?? "",
     model: "gpt-4",
   });
@@ -142,7 +142,7 @@ async function extractSkillsFromResume(resumeContent: string) {
       }),
       retry: retryWithExponentialBackoff({
         maxTries: 5,
-        delay: 4000,
+        initialDelay: 4000,
       }),
     }),
     filter: (text) => text !== "IRRELEVANT",
