@@ -1,13 +1,10 @@
 "use client";
 
-import { extractTopicAndExcludeChatPrompt } from "ai-utils.js/prompt";
-import { OpenAIChatModel } from "ai-utils.js/provider/openai";
 import {
-  generateText,
-  splitMapFilterReduce,
-  splitRecursivelyAtCharacter,
-} from "ai-utils.js/text";
-import { retryWithExponentialBackoff } from "ai-utils.js/util";
+  OpenAIChatMessage,
+  OpenAIChatModel,
+  summarizeRecursivelyWithTextGenerationAndTokenSplitting,
+} from "ai-utils.js";
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import * as PDFJS from "pdfjs-dist";
 import { useState } from "react";
@@ -130,57 +127,24 @@ async function extractSkillsFromResume(resumeContent: string) {
     model: "gpt-4",
   });
 
-  const extractTopicFromREsume = splitMapFilterReduce.asMapFunction({
-    split: splitRecursivelyAtCharacter.asSplitFunction({
-      maxChunkSize: 1024 * 4,
-    }),
-    map: generateText.asFunction({
-      model: gpt4,
-      prompt: extractTopicAndExcludeChatPrompt({
-        topic: "Skills and Experience",
-        excludeKeyword: "IRRELEVANT",
-      }),
-      retry: retryWithExponentialBackoff({
-        maxTries: 5,
-        initialDelay: 4000,
-      }),
-    }),
-    filter: (text) => text !== "IRRELEVANT",
-    reduce: generateText.asFunction({
-      functionId: "rewrite",
-      model: gpt4,
-      prompt: async ({ text }) => [
-        {
-          role: "user" as const,
-          content: `## TOPIC\nSkills and Experience`,
-        },
-        {
-          role: "system" as const,
-          content: `## TASK
-Rewrite the content below into a list of skills and experiences.
-Discard all irrelevant information.`,
-        },
-        {
-          role: "user" as const,
-          content: `## CONTENT\n${text}`,
-        },
-      ],
-    }),
+  return await summarizeRecursivelyWithTextGenerationAndTokenSplitting({
+    text: resumeContent,
+    model: gpt4,
+    prompt: async ({ text }: { text: string }) => [
+      OpenAIChatMessage.system(
+        [
+          `## ROLE`,
+          `You are an expert at extracting information.`,
+          `You need to extract and keep all the information related to skills and experiences.`,
+          `Only include information that is directly relevant to skills and experiences.`,
+          `Discard all irrelevant information.`,
+        ].join("\n")
+      ),
+      OpenAIChatMessage.user(`## TEXT\n${text}`),
+    ],
+    functionId: "extract-information",
+    reservedCompletionTokens: 1024,
   });
-
-  return await extractTopicFromREsume(
-    {
-      text: resumeContent,
-    },
-    {
-      onCallStart: (record) => {
-        console.log(record);
-      },
-      onCallEnd: (record) => {
-        console.log(record);
-      },
-    }
-  );
 }
 
 async function getTextFromPdf(arrayBuffer: ArrayBuffer) {
