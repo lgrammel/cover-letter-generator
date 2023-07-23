@@ -127,24 +127,26 @@ async function extractSkillsFromResume(resumeContent: string) {
     model: "gpt-4",
   });
 
-  return await summarizeRecursivelyWithTextGenerationAndTokenSplitting({
-    text: resumeContent,
-    model: gpt4,
-    prompt: async ({ text }: { text: string }) => [
-      OpenAIChatMessage.system(
-        [
-          `## ROLE`,
-          `You are an expert at extracting information.`,
-          `You need to extract and keep all the information related to skills and experiences.`,
-          `Only include information that is directly relevant to skills and experiences.`,
-          `Discard all irrelevant information.`,
-        ].join("\n")
-      ),
-      OpenAIChatMessage.user(`## TEXT\n${text}`),
-    ],
-    functionId: "extract-information",
-    reservedCompletionTokens: 1024,
-  });
+  return await summarizeRecursivelyWithTextGenerationAndTokenSplitting(
+    {
+      text: resumeContent,
+      model: gpt4,
+      prompt: async ({ text }: { text: string }) => [
+        OpenAIChatMessage.system(
+          [
+            `## ROLE`,
+            `You are an expert at extracting information.`,
+            `You need to extract and keep all the information related to skills and experiences.`,
+            `Only include information that is directly relevant to skills and experiences.`,
+            `Discard all irrelevant information.`,
+          ].join("\n")
+        ),
+        OpenAIChatMessage.user(`## TEXT\n${text}`),
+      ],
+      reservedCompletionTokens: 1024,
+    },
+    { functionId: "extract-information" }
+  );
 }
 
 async function getTextFromPdf(arrayBuffer: ArrayBuffer) {
