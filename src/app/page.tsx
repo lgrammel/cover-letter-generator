@@ -4,7 +4,7 @@ import {
   OpenAIChatMessage,
   OpenAIChatModel,
   summarizeRecursivelyWithTextGenerationAndTokenSplitting,
-} from "ai-utils.js";
+} from "modelfusion";
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import * as PDFJS from "pdfjs-dist";
 import { useState } from "react";
